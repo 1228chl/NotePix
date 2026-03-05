@@ -1,7 +1,7 @@
 # NotePix - GitHub Image Uploader
 
 [![Built for Obsidian](https://img.shields.io/badge/Built%20for-Obsidian-7B68EE.svg?style=for-the-badge)](https://obsidian.md)
-[![Release Version](https://img.shields.io/github/v/release/AyushParkara/NotePix?style=for-the-badge&sort=semver)](https://github.com/AyushParkara/NotePix/releases/)
+[![Release Version](https://img.shields.io/github/v/release/AyushParkara/NotePix?display_name=tag&style=for-the-badge&sort=semver&cacheSeconds=300&v=20260305)](https://github.com/AyushParkara/NotePix/releases/)
 
 NotePix automatically uploads images, screenshots, and other assets from your Obsidian vault to a designated GitHub repository. It then replaces local links with either a GitHub-hosted URL or a secure internal private link, with smart Auto/Public/Private mode handling.
 
