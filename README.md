@@ -13,7 +13,7 @@ NotePix automatically uploads images, screenshots, and other assets from your Ob
 -   **Private Repository Support**: Securely store your images in a private GitHub repository. NotePix fetches and displays them on-the-fly in Reading View.
 -   **Repo Mode Intelligence**: Use **Auto (Recommended)** to detect repo privacy and choose the correct link format automatically.
 -   **Mismatch Prompt (3 Options)**: If your repo is private but notes contain public raw links, NotePix prompts: **Use Auto Mode**, **Switch to Private**, or **Keep Public**.
--   **Private Raw-Link Fallback**: Existing `raw.githubusercontent.com` links for your configured repo can still render in preview when the repo is private.
+-   **Private Raw-Link Fallback**: Existing `raw.githubusercontent.com` links from any repository under your configured GitHub user can still render in preview.
 -   **Self-Describing Private Links**: New private links include repo context (`owner/repo/branch/path`) so they remain resolvable even if you change repository settings later.
 -   **Smart Hover Detection**: Password prompts only appear in main document views. Hover previews and page previews work seamlessly without interrupting your workflow.
 -   **Secure Token Storage**: Your GitHub Personal Access Token (PAT) is **never** stored in plain text. It is encrypted using AES-GCM, and you are prompted for a master password to decrypt it once per session.
@@ -34,7 +34,8 @@ NotePix automatically uploads images, screenshots, and other assets from your Ob
 
 #### Public
 - Uploads always insert raw GitHub URLs.
-- If the configured repo is actually private, those URLs may fail in editor/browser contexts, but NotePix can still render matching existing raw links in preview via authenticated API fetch.
+- If the configured repo is actually private, those URLs may fail in editor/browser contexts.
+- NotePix can still render matching existing raw links from your configured GitHub user (including older links from other repos) in preview via authenticated API fetch.
 
 #### Private
 - Uploads always insert private internal links.
