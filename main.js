@@ -112,7 +112,9 @@ var DEFAULT_SETTINGS = {
     integrateAttachmentsOnMobile: true,
     // Repo mismatch prompt suppression
     lastPromptedAt: 0,
-    lastPromptedRepo: ''
+    lastPromptedRepo: '',
+    autoDeleteEnabled: false,
+    confirmBeforeDelete: true,
 };
 var MyPlugin = class extends import_obsidian.Plugin {
     constructor() {
@@ -136,6 +138,7 @@ var MyPlugin = class extends import_obsidian.Plugin {
         this.repoListCache = null;
         this.legacyResolvedRepoByKey = new Map();
         this.legacyUnresolvedUntil = new Map();
+        this.fileContentCache = new Map();
     }
     getVaultFolderPaths() {
         const res = [];
@@ -479,6 +482,12 @@ var MyPlugin = class extends import_obsidian.Plugin {
     }
     async onload() {
         await this.loadSettings();
+        // 初始化文件内容缓存
+        const allFiles = this.app.vault.getMarkdownFiles();
+        for (const f of allFiles) {
+            const content = await this.app.vault.read(f);
+            this.fileContentCache.set(f.path, content);
+        }
         this.addSettingTab(new GitHubUploaderSettingTab(this.app, this));
 
         // Initialize an in-memory cache for private images
@@ -575,6 +584,76 @@ var MyPlugin = class extends import_obsidian.Plugin {
                 if (!file) return;
                 await this.sanitizeFileOnOpen(file);
                 this.checkRepoMismatchOnFileOpen(file);
+            })
+        );
+        // 自动删除：监听文件修改（保存时触发）
+        this.registerEvent(
+            this.app.vault.on("modify", async (file) => {
+                if (!this.settings.autoDeleteEnabled) return;
+                if (!(file instanceof import_obsidian.TFile) || file.extension !== "md") return;
+
+                const currentContent = await this.app.vault.read(file);
+                const oldContent = this.fileContentCache.get(file.path);
+                if (!oldContent) {
+                    this.fileContentCache.set(file.path, currentContent);
+                    return;
+                }
+                if (currentContent === oldContent) return;
+
+                const deleted = this.findDeletedImageLinks(oldContent, currentContent);
+                if (deleted.length === 0) {
+                    this.fileContentCache.set(file.path, currentContent);
+                    return;
+                }
+
+                for (const img of deleted) {
+                    if (this.settings.confirmBeforeDelete) {
+                        const confirmModal = new ConfirmationModal(
+                            this.app,
+                            "Confirm Delete",
+                            `Delete ${img.remotePath} from GitHub?`
+                        );
+                        const confirmed = await confirmModal.open();
+                        if (!confirmed) continue;
+                    }
+                    await this.deleteFileFromGitHub(img.remotePath);
+                }
+                this.fileContentCache.set(file.path, currentContent);
+            })
+        );
+                // 右键菜单手动删除
+        this.registerEvent(
+            this.app.workspace.on("editor-menu", (menu, editor, view) => {
+                const cursor = editor.getCursor();
+                const line = editor.getLine(cursor.line);
+                const links = this.extractNotepixImageLinks(line);
+                if (links.length === 0) return;
+
+                menu.addItem((item) => {
+                    item
+                        .setTitle("从本地和GitHub删除图片")
+                        .setIcon("trash")
+                        .onClick(async () => {
+                            const target = links[0];
+                            if (this.settings.confirmBeforeDelete) {
+                                const confirmModal = new ConfirmationModal(
+                                    this.app,
+                                    "Confirm Delete",
+                                    `Delete ${target.remotePath} from GitHub?`
+                                );
+                                const confirmed = await confirmModal.open();
+                                if (!confirmed) return;
+                            }
+                            const ok = await this.deleteFileFromGitHub(target.remotePath);
+                            if (ok) {
+                                const newLine = line.replace(target.fullMatch, "").trim();
+                                editor.setLine(cursor.line, newLine);
+                                new import_obsidian.Notice("Image link removed from note.");
+                            } else {
+                                new import_obsidian.Notice("Failed to delete from GitHub, link kept.");
+                            }
+                        });
+                });
             })
         );
     }
@@ -788,6 +867,85 @@ var MyPlugin = class extends import_obsidian.Plugin {
             }
         }
         return null;
+    }
+    extractNotepixImageLinks(content) {
+        const links = [];
+        if (!content) return links;
+        // 匹配私有协议：obsidian://notepix/v2/owner/repo/branch/path
+        const privateRegex = /!\[[^\]]*\]\(obsidian:\/\/notepix\/v2\/[^\/]+\/[^\/]+\/[^\/]+\/([^)]+)\)/g;
+        let match;
+        while ((match = privateRegex.exec(content)) !== null) {
+            links.push({ fullMatch: match[0], remotePath: match[1] });
+        }
+        // 匹配公共 raw 链接
+        const publicRegex = /!\[[^\]]*\]\(https?:\/\/raw\.githubusercontent\.com\/[^\/]+\/[^\/]+\/[^\/]+\/([^)]+)\)/g;
+        while ((match = publicRegex.exec(content)) !== null) {
+            links.push({ fullMatch: match[0], remotePath: match[1] });
+        }
+        return links;
+    }
+    findDeletedImageLinks(oldContent, newContent) {
+        const oldLinks = this.extractNotepixImageLinks(oldContent);
+        const newLinks = this.extractNotepixImageLinks(newContent);
+        return oldLinks.filter(oldLink => 
+            !newLinks.some(newLink => newLink.remotePath === oldLink.remotePath)
+        );
+    }
+    async deleteFileFromGitHub(remotePath) {
+        const token = await this.getToken();
+        if (!token) {
+            new import_obsidian.Notice("No GitHub token available");
+            return false;
+        }
+        const owner = this.settings.githubUser;
+        const repo = this.settings.repoName;
+        const branch = this.settings.branchName;
+        const fullPath = remotePath; // 注意：remotePath 已经包含文件夹前缀
+
+        try {
+            // 1. 获取文件 SHA
+            const getUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${fullPath}?ref=${branch}`;
+            const getResp = await fetch(getUrl, {
+                headers: { "Authorization": `token ${token}` }
+            });
+            if (!getResp.ok) {
+                if (getResp.status === 404) {
+                    new import_obsidian.Notice(`File not found: ${fullPath}`);
+                } else {
+                    new import_obsidian.Notice(`Failed to get file info: ${getResp.statusText}`);
+                }
+                return false;
+            }
+            const fileInfo = await getResp.json();
+            const sha = fileInfo.sha;
+
+            // 2. 删除文件
+            const deleteUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${fullPath}`;
+            const deleteResp = await fetch(deleteUrl, {
+                method: "DELETE",
+                headers: {
+                    "Authorization": `token ${token}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    message: `Delete image via NotePix auto-cleanup`,
+                    sha: sha,
+                    branch: branch
+                })
+            });
+            if (deleteResp.ok) {
+                new import_obsidian.Notice(`Deleted from GitHub: ${fullPath}`);
+                return true;
+            } else {
+                const error = await deleteResp.json();
+                new import_obsidian.Notice(`Delete failed: ${error.message}`);
+                return false;
+            }
+        } catch (err) {
+            console.error("GitHub delete error:", err);
+            new import_obsidian.Notice(`Delete failed: ${err.message}`);
+            return false;
+        }
     }
 
     // Unified token getter: returns a usable GitHub token based on settings/state.
@@ -1078,6 +1236,34 @@ var MyPlugin = class extends import_obsidian.Plugin {
             }
 
             new import_obsidian.Notice(`${newFileName} uploaded successfully!`);
+
+            // =========================================================================================================
+
+
+
+
+            // ========== 备份：复制一份到 Assets/Image-Backup，并重命名为云端文件名 ==========
+            const backupFolder = 'Assets/Image-Backup';
+            await this.ensureFolderExists(backupFolder);  // 确保文件夹存在（见下方辅助函数）
+            const backupPath = `${backupFolder}/${newFileName}`;
+            const backupExists = await this.app.vault.adapter.exists(backupPath);
+
+
+
+            // =========================================================================================================
+            if (!backupExists) {
+                try {
+                    const fileData = await this.app.vault.readBinary(file);
+                    await this.app.vault.createBinary(backupPath, fileData);
+                    new import_obsidian.Notice(`已备份到 ${backupPath}`);
+                } catch (e) {
+                    console.error('备份失败', e);
+                    new import_obsidian.Notice(`备份失败：${e.message}`);
+                }
+            } else {
+                new import_obsidian.Notice(`备份文件已存在，跳过：${backupPath}`);
+            }
+
             if (this.settings.deleteLocal && !isPaste && replacedLink) {
                 await this.app.vault.delete(file);
                 new import_obsidian.Notice(`Local file ${file.name} deleted.`);
@@ -2361,6 +2547,27 @@ var GitHubUploaderSettingTab = class extends import_obsidian.PluginSettingTab {
                     });
                 });
         }
+        // 自动删除开关
+        new import_obsidian.Setting(containerEl)
+            .setName("Auto-delete images from GitHub")
+            .setDesc("When an image link is removed from a note, automatically delete the corresponding file from GitHub.")
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.autoDeleteEnabled)
+                .onChange(async (value) => {
+                    this.plugin.settings.autoDeleteEnabled = value;
+                    await this.plugin.saveSettings();
+                }));
+        
+        // 删除前确认开关
+        new import_obsidian.Setting(containerEl)
+            .setName("Confirm before deletion")
+            .setDesc("Show a confirmation dialog before deleting any image from GitHub.")
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.confirmBeforeDelete)
+                .onChange(async (value) => {
+                    this.plugin.settings.confirmBeforeDelete = value;
+                    await this.plugin.saveSettings();
+                }));
     }
 };
 
@@ -2464,3 +2671,5 @@ var RepoMismatchModal = class extends import_obsidian.Modal {
 
 module.exports = MyPlugin;
 
+
+/* nosourcemap */
