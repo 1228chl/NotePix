@@ -1,70 +1,74 @@
+# NotePix 插件支持与反馈
 
-# NotePix Plugin Support and Feedback
+感谢您花时间报告问题或为 **NotePix** 提出改进建议。您的反馈非常宝贵！
 
-Thank you for taking the time to report an issue or suggest an improvement for **NotePix**. Your feedback is valuable!
-
-Please follow the appropriate template below to ensure we have all the necessary information to process your request quickly and efficiently.
+请根据以下模板填写，以便我们快速、高效地处理您的请求。
 
 ---
 
-### **1. 🐞 Bug Report Template**
+### **1. 🐞 错误报告模板**
 
-Use this format to report unexpected behavior, errors, or broken functionality.
+请使用此格式报告意外行为、错误或功能异常。
 
-**▶️ Recommended Issue Title Format:** `[BUG] Brief summary of the problem and where it occurs`
+**▶️ 推荐问题标题格式：** `[BUG] 问题简述及发生位置`
 
-### 🐞 Bug Report
+### 🐞 错误报告
 
-**Plugin Version:** [e.g., v1.2.5]
-**Obsidian Version:** [e.g., v1.4.16]
-**Operating System:** [e.g., Windows 10, macOS Ventura, Android]
+**插件版本：** [例如 v1.4.3]
+**Obsidian 版本：** [例如 v1.5.11]
+**操作系统：** [例如 Windows 11, macOS Sonoma, Android 13]
 
-#### Description of the Bug
-[A clear and concise description of what the bug is.]
+#### 问题描述
+[清晰简洁地描述这个 bug 是什么。]
 
-#### Steps to Reproduce
-1. [Go to X setting/page]
-2. [Click Y button]
-3. [Observe Z outcome (the incorrect behavior)]
+#### 复现步骤
+1. [进入 X 设置/页面]
+2. [点击 Y 按钮]
+3. [观察到 Z 结果（错误行为）]
 
-#### Expected Behavior
-[A clear and concise description of what you expected to happen.]
+#### 预期行为
+[清晰简洁地描述您期望发生什么。]
 
-#### Screenshots/Error Logs (If applicable)
-[Paste any relevant screenshots, error messages from the Console (Ctrl+Shift+I), or log files here.]
+#### 截图/错误日志（如有）
+[在此粘贴相关截图、控制台（Ctrl+Shift+I）的错误信息或日志文件。]
 
------
+#### 相关功能说明（可选）
+[例如：是否与“按笔记路径存储图片”、“基于标题层级生成文件名”、“未使用图片清理”、“私有仓库自动模式”等功能有关？请注明您的设置项（如 `imageStorageStrategy`、`repoVisibility` 等）。]
 
-### **2. ✨ Feature Request / Suggestion Template**
+---
 
-Use this format to suggest a new feature or an improvement to existing functionality.
+### **2. ✨ 功能请求 / 建议模板**
 
-**▶️ Recommended Issue Title Format:** `[FEAT] Concise description of the new feature or suggestion`
+请使用此格式建议新功能或对现有功能的改进。
 
-### ✨ Feature Request / Suggestion
+**▶️ 推荐问题标题格式：** `[FEAT] 新功能或建议的简要描述`
 
-#### Is your feature request related to a problem?
-[A brief explanation of why the current functionality is insufficient or what problem your suggestion solves.]
+### ✨ 功能请求 / 建议
 
-#### Describe the Solution You'd Like
-[A clear and concise description of what you want the feature to do. Include any specific commands or settings you envision.]
+#### 您的功能请求是否与某个问题相关？
+[简要说明当前功能的不足，或您的建议解决了什么问题。]
 
-#### Describe Alternatives You've Considered
-[Describe any alternative solutions or features you have considered.]
+#### 描述您期望的解决方案
+[清晰简洁地描述您希望该功能如何工作，包括您设想的任何具体命令或设置项。]
 
-#### Additional Context (If applicable)
-[Add any other context, wireframes, or example use cases for the feature.]
+#### 您考虑过的替代方案
+[描述您考虑过的任何替代解决方案或功能。]
 
-## 🔒 Need Individual Support or Direct Troubleshooting?
+#### 额外背景（如有）
+[添加任何其他背景信息、界面草图或用例。]
 
-If your issue requires personalized troubleshooting, privacy concerns (e.g., sharing specific vault details), or direct, real-time communication, please **create an issue on GitHub first** using the format above, and then join our support server:
+---
 
-**Discord Invitation Link:** **[https://discord.gg/KJr9WAJJ](https://discord.gg/KJr9WAJJ)**
+### **3. 🔒 需要个人支持或直接排查？**
 
-**Instructions for Discord:**
+如果您的问题需要个性化排查、涉及隐私（例如分享特定的 vault 细节），或需要实时沟通，请先使用上述模板在 GitHub 上 **创建一个 Issue**，然后加入我们的支持服务器：
 
-1.  Join the server via the link above.
-2.  Once you have a GitHub issue number (e.g., `#123`), post it in the public **\#general** channel.
-3.  A support team member will then create a **private, one-on-one ticket channel** for you to manage your issue individually and confidentially.
+**Discord 邀请链接：** **[https://discord.gg/KJr9WAJJ](https://discord.gg/KJr9WAJJ)**
 
-Thank you for helping to make NotePix better\!
+**Discord 使用说明：**
+
+1.  通过上方链接加入服务器。
+2.  获取您已创建的 GitHub Issue 编号（例如 `#123`）后，在公开的 **#general** 频道中发布该编号。
+3.  支持团队成员将为您创建一个 **私密的一对一工单频道**，以便单独、保密地处理您的问题。
+
+感谢您帮助使 NotePix 变得更好！
