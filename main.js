@@ -129,7 +129,8 @@ const DEFAULT_SETTINGS = {
     autoDeleteEnabled: false,
     confirmBeforeDelete: true,
     // 图片计数器持久化
-    imageCounters: {}    // { "笔记路径|标题层级路径": 当前序号 }
+    imageCounters: {},    // { "笔记路径|标题层级路径": 当前序号 }
+    imageUrlType: 'raw',   // 'raw' 或 'jsdelivr'，用于公开仓库的链接格式
 };
 
 // ========== 主插件类 ==========
@@ -619,7 +620,13 @@ var MyPlugin = class extends import_obsidian.Plugin {
                     finalUrl = `obsidian://notepix/v2/${encOwner}/${encRepo}/${encBranch}/${encPath}`;
                     new import_obsidian.Notice("检测到私有仓库，已创建私有图片链接。");
                 } else {
-                    finalUrl = `https://raw.githubusercontent.com/${this.settings.githubUser}/${this.settings.repoName}/${this.settings.branchName}/${filePath}`;
+                    //finalUrl = `https://raw.githubusercontent.com/${this.settings.githubUser}/${this.settings.repoName}/${this.settings.branchName}/${filePath}`;
+                    //finalUrl = `https://cdn.jsdelivr.net/gh/${this.settings.githubUser}/${this.settings.repoName}@${this.settings.branchName}/${filePath}`;
+                    if (this.settings.imageUrlType === 'jsdelivr') {
+                        finalUrl = `https://cdn.jsdelivr.net/gh/${this.settings.githubUser}/${this.settings.repoName}@${this.settings.branchName}/${filePath}`;
+                    } else {
+                        finalUrl = `https://raw.githubusercontent.com/${this.settings.githubUser}/${this.settings.repoName}/${this.settings.branchName}/${filePath}`;
+                    }
                     if (detectedPrivacy === 'unknown') new import_obsidian.Notice("无法检测仓库隐私，使用公共 URL 作为后备。");
                 }
             } else {
@@ -1818,6 +1825,28 @@ class GitHubUploaderSettingTab extends import_obsidian.PluginSettingTab {
                     this.plugin.settings.imageStorageStrategy = value;
                     await this.plugin.saveSettings();
                     this.display(); // 刷新界面
+                }));
+        
+        new import_obsidian.Setting(containerEl)
+            .setName("公开图片链接格式")
+            .setDesc("仅当仓库为公开时生效。jsDelivr CDN 在国内访问更快，但有24小时缓存；GitHub Raw 无缓存但速度较慢。")
+            .addDropdown(dropdown => dropdown
+                .addOption('raw', 'GitHub Raw (原始链接)')
+                .addOption('jsdelivr', 'jsDelivr CDN (加速推荐)')
+                .setValue(this.plugin.settings.imageUrlType || 'raw')
+                .onChange(async (value) => {
+                    this.plugin.settings.imageUrlType = value;
+                    await this.plugin.saveSettings();
+        }));
+
+        new import_obsidian.Setting(containerEl)
+            .setName("自动上传监控图片")
+            .setDesc("当图片被放入监控文件夹（上传临时文件夹/额外监控文件夹/移动端附件文件夹）时，自动上传到 GitHub。关闭后图片将仅保存在本地。")
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.autoUpload)
+                .onChange(async (value) => {
+                    this.plugin.settings.autoUpload = value;
+                    await this.plugin.saveSettings();
                 }));
 
         if (this.plugin.settings.imageStorageStrategy === 'byNotePath') {
