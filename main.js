@@ -893,7 +893,7 @@ var MyPlugin = class extends import_obsidian.Plugin {
         this.recordPendingLinkPlaceholder(newFile.path, placeholderText, sourcePath);
         this.recordPendingLinkPlaceholder(newFile.name, placeholderText, sourcePath);
         activeView.editor.replaceSelection(placeholderText);
-        if (!this.settings.autoUpload) await this.handleImageUpload(newFile, false, sourcePath);
+        if (this.settings.autoUpload) await this.handleImageUpload(newFile, false, sourcePath);
     }
 
     async saveImageLocally(imageFile) {
