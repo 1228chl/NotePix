@@ -1,116 +1,115 @@
-# NotePix - GitHub Image Uploader
+# NotePix - GitHub 图片上传插件
 
-[![Built for Obsidian](https://img.shields.io/badge/Built%20for-Obsidian-7B68EE.svg?style=for-the-badge)](https://obsidian.md)
-[![Release Version](https://img.shields.io/github/v/release/AyushParkara/NotePix?display_name=tag&style=for-the-badge&sort=semver&cacheSeconds=300&v=20260305)](https://github.com/AyushParkara/NotePix/releases/)
+[![Built for Obsidian](https://img.shields.io/badge/专为-Obsidian-7B68EE.svg?style=for-the-badge)](https://obsidian.md)
+[![发布版本](https://img.shields.io/github/v/release/1228chl/NotePix?display_name=tag&style=for-the-badge&sort=semver&cacheSeconds=300&v=20260305)](https://github.com/1228chl/NotePix/releases/)
 
-NotePix automatically uploads images, screenshots, and other assets from your Obsidian vault to a designated GitHub repository. It then replaces local links with either a GitHub-hosted URL or a secure internal private link, with smart Auto/Public/Private mode handling.
+NotePix 可以自动将您 Obsidian 笔记中的图片、截图等资源上传到指定的 GitHub 仓库，并将本地链接替换为 GitHub 托管的 URL 或安全的私有内部链接，同时智能处理公开/私有仓库模式。
 
-![NotePix Demo GIF](https://raw.githubusercontent.com/AyushParkara/NotePix/main/assets/notepix-demo.gif)
+> **原作者**：[Ayush Parkara](https://github.com/AyushParkara)  
+> **复刻维护者**：[1228chl](https://github.com/1228chl)  
+> 本项目是原版 [NotePix](https://github.com/AyushParkara/NotePix) 的一个复刻，遵循相同的 MIT 许可证。
 
-## ✨ Features
+## ✨ 功能特性
 
--   **Seamless Automation**: Just paste or drag an image into a note. NotePix handles the rest.
--   **Private Repository Support**: Securely store your images in a private GitHub repository. NotePix fetches and displays them on-the-fly in Reading View.
--   **Repo Mode Intelligence**: Use **Auto (Recommended)** to detect repo privacy and choose the correct link format automatically.
--   **Mismatch Prompt (3 Options)**: If your repo is private but notes contain public raw links, NotePix prompts: **Use Auto Mode**, **Switch to Private**, or **Keep Public**.
--   **Private Raw-Link Fallback**: Existing `raw.githubusercontent.com` links from any repository under your configured GitHub user can still render in preview.
--   **Self-Describing Private Links**: New private links include repo context (`owner/repo/branch/path`) so they remain resolvable even if you change repository settings later.
--   **Smart Hover Detection**: Password prompts only appear in main document views. Hover previews and page previews work seamlessly without interrupting your workflow.
--   **Secure Token Storage**: Your GitHub Personal Access Token (PAT) is **never** stored in plain text. It is encrypted using AES-GCM, and you are prompted for a master password to decrypt it once per session.
--   **GitHub-Hosted Links**: For public repositories, NotePix uses direct GitHub links to serve images.
--   **Customizable**: Configure the target repository, branch, and folder path to fit your workflow.
--   **Clean Up**: Optionally delete the local image file after a successful upload to save space.
--   **Mobile Compatible**: Works on both Obsidian Desktop and Mobile.
--   **Mobile improvements (Android/iOS)**: Uses the Obsidian attachment folder on mobile, fixes link replacement for attachment-button screenshots, and only deletes local images after the note link has been successfully updated.
+-   **无缝自动化**：只需将图片粘贴或拖入笔记，剩下的交给 NotePix。
+-   **私有仓库支持**：将图片安全存储在私有 GitHub 仓库中，NotePix 可在阅读视图中动态获取并显示它们。
+-   **仓库模式智能识别**：使用 **自动（推荐）** 模式，插件会自动检测仓库隐私状态并选择正确的链接格式。
+-   **不匹配提示（3个选项）**：如果您的仓库是私有的，但笔记中包含公开的 raw 链接，NotePix 会提示您：**使用自动模式**、**切换到私有模式** 或 **保持公开模式**。
+-   **私有 raw 链接回退**：已存在的 `raw.githubusercontent.com` 链接（来自您配置的 GitHub 用户下的任意仓库）依然可以在预览中渲染。
+-   **自描述的私有链接**：新的私有链接会包含仓库上下文（`所有者/仓库/分支/路径`），即使以后更改仓库设置，这些链接仍然可以解析。
+-   **智能悬浮检测**：密码提示只会在主文档视图中出现，悬浮预览和页面预览不会打断您的工作流。
+-   **安全的 Token 存储**：您的 GitHub 个人访问令牌（PAT）**绝不会**以明文存储。它使用 AES-GCM 加密，每次会话只需要输入一次主密码即可解密。
+-   **GitHub 托管的链接**：对于公开仓库，NotePix 使用直接 GitHub 链接来提供图片。
+-   **可自定义**：配置目标仓库、分支和文件夹路径，以适应您的工作流。
+-   **清理本地文件**：上传成功后，可选择删除本地原始图片文件以节省空间。
+-   **移动端兼容**：同时支持 Obsidian 桌面版和移动端。
+-   **移动端改进（Android/iOS）**：在移动端使用 Obsidian 附件文件夹，修复了附件按钮截图的链接替换问题，并且仅在笔记链接成功更新后才删除本地图片。
 
-## ⚙️ How it Works
+## ⚙️ 工作原理
 
-### Repository visibility modes
+### 仓库可见性模式
 
-#### Auto (Recommended)
-1. On upload, NotePix checks repo privacy (cached for 10 minutes).
-2. If repo is public → inserts `https://raw.githubusercontent.com/...`.
-3. If repo is private → inserts private internal link in v2 format, e.g. `![](obsidian://notepix/v2/<owner>/<repo>/<branch>/<path>)`.
+#### 自动（推荐）
+1.  上传时，NotePix 检查仓库隐私状态（缓存 10 分钟）。
+2.  如果仓库是公开的 → 插入 `https://raw.githubusercontent.com/...`。
+3.  如果仓库是私有的 → 插入私有内部链接（v2 格式），例如 `![](obsidian://notepix/v2/<所有者>/<仓库>/<分支>/<路径>)`。
 
-#### Public
-- Uploads always insert raw GitHub URLs.
-- If the configured repo is actually private, those URLs may fail in editor/browser contexts.
-- NotePix can still render matching existing raw links from your configured GitHub user (including older links from other repos) in preview via authenticated API fetch.
+#### 公开模式
+-   上传总是插入 raw GitHub URL。
+-   如果配置的仓库实际上是私有的，这些 URL 在编辑器或浏览器上下文中可能无法工作。
+-   但是 NotePix 仍然可以在预览时通过身份验证的 API 获取并渲染来自您配置的 GitHub 用户下的匹配 raw 链接（包括来自其他仓库的旧链接）。
 
-#### Private
-- Uploads always insert private internal links.
-- Private links are fetched and rendered in Reading/Preview contexts using your token.
+#### 私有模式
+-   上传总是插入私有内部链接。
+-   私有链接在阅读/预览上下文中使用您的 Token 获取并渲染。
 
-### Existing links and mismatch handling
-- If repo appears private while notes contain matching raw links, NotePix can show a 3-button mismatch modal:
-	- **Use Auto Mode**
-	- **Switch to Private**
-	- **Keep Public**
-- Prompt suppression is applied per repo with a cooldown window to avoid repeated interruptions.
+### 现有链接与不匹配处理
+-   如果仓库似乎是私有的，而笔记中包含匹配的 raw 链接，NotePix 可以显示一个包含 3 个按钮的不匹配弹窗：
+    -   **使用自动模式**
+    -   **切换到私有模式**
+    -   **保持公开模式**
+-   提示抑制功能按仓库生效，并带有冷却时间，避免反复打扰。
 
-### Editor vs Reading View
-- Private images are rendered in Reading/Preview contexts through authenticated API fetch.
-- In Source/Live Preview text editing, the markdown editor itself cannot directly render authenticated private URL fetches in the same way.
+### 编辑器 vs 阅读视图
+-   私有图片在阅读/预览上下文中通过身份验证的 API 获取并渲染。
+-   在源码模式/实时预览的文本编辑模式下，Markdown 编辑器本身无法以相同方式直接渲染经过身份验证的私有 URL 获取。
 
-If encryption is enabled, the plugin prompts for master password when token unlock is needed. After successful decrypt, the token is cached for the session.
+如果启用了加密，插件会在需要解锁 Token 时提示输入主密码。成功解密后，Token 将在会话期间缓存。
 
-## 🚀 Setup Guide
+## 🚀 配置指南
 
-Follow these steps to get NotePix running.
+按照以下步骤让 NotePix 运行起来。
 
-### Step 1: Create a GitHub Repository (Public or Private)
+### 第 1 步：创建一个 GitHub 仓库（公开或私有）
 
-First, you need a GitHub repository to store your images. This can now be **public** or **private**.
+首先，您需要一个 GitHub 仓库来存储图片。现在可以是 **公开** 或 **私有** 的。
 
-1.  Go to [GitHub](https://github.com) and create a **new repository**.
-2.  You can name it anything you like (e.g., `obsidian-assets`, `my-notes-images`).
-3.  Choose the visibility: **Public** or **Private**.
+1.  访问 [GitHub](https://github.com) 并创建一个 **新仓库**。
+2.  可以任意命名（例如 `obsidian-assets`、`my-notes-images`）。
+3.  选择可见性：**公开** 或 **私有**。
 
-### Step 2: Generate a GitHub Personal Access Token (PAT)
+### 第 2 步：生成 GitHub 个人访问令牌（PAT）
 
-NotePix needs a token to be able to upload files to your repository.
+NotePix 需要一个令牌才能上传文件到您的仓库。
 
-1.  Go to your GitHub **Settings**.
-2.  Navigate to **Developer settings** > **Personal access tokens** > **Tokens (classic)**.
-3.  Click **"Generate new token"** and select **"Generate new token (classic)"**.
-4.  Give the token a descriptive name (e.g., `obsidian-notepix-token`).
-5.  Set the **Expiration** as desired (e.g., 90 days or "No expiration").
-6.  Under **Select scopes**, check the box for **`repo`**. This is the only permission required for both public and private repos.
-7.  Click **"Generate token"** at the bottom.
-8.  **Immediately copy the token!** You will not be able to see it again.
+1.  进入您的 GitHub **设置**。
+2.  导航到 **开发者设置** > **个人访问令牌** > **令牌（经典）**。
+3.  点击 **“生成新令牌”** 并选择 **“生成新令牌（经典）”**。
+4.  给令牌起一个描述性的名称（例如 `obsidian-notepix-token`）。
+5.  根据需要设置 **过期时间**（例如 90 天或“无过期”）。
+6.  在 **选择范围** 下，勾选 **`repo`**。这是公开和私有仓库都需要的唯一权限。
+7.  点击底部的 **“生成令牌”**。
+8.  **立即复制令牌！** 您将无法再次看到它。
 
-### Step 3: Install and Configure the Plugin
+### 第 3 步：安装并配置插件
 
-1.  Install NotePix from the Obsidian **Community Plugins** browser.
-2.  Enable the plugin in your settings.
-3.  Open the NotePix settings tab and fill in the details:
+1.  从 Obsidian **社区插件** 浏览器中安装 NotePix。
+2.  在设置中启用该插件。
+3.  打开 NotePix 设置选项卡并填写详细信息：
 
-| Setting | Description | Example |
+| 设置项 | 描述 | 示例 |
 | :--- | :--- | :--- |
-| **GitHub Username** | Your GitHub username (case-sensitive). | `AyushParkara` |
-| **Repository Name** | The name of the repository you created in Step 1. | `obsidian-assets` |
-| **Repository Visibility** | **Auto (Recommended)** detects privacy and picks the correct link format. Public/Private force behavior. | `Auto` / `Public` / `Private` |
-| **Branch Name** | The branch to upload files to. | `main` or `master` |
-| **Folder Path in Repository** | The directory inside your repo to store images. A `/` is added automatically. | `assets/` |
-| **Delete Local File** | If enabled, the original image file is deleted from your vault after a successful upload. | `true` / `false` |
+| **GitHub 用户名** | 您的 GitHub 用户名（区分大小写）。 | `1228chl` |
+| **仓库名** | 您在第 1 步中创建的仓库名称。 | `obsidian-assets` |
+| **仓库可见性** | **自动（推荐）** 检测隐私状态并选择正确的链接格式。公开/私有强制执行行为。 | `自动` / `公开` / `私有` |
+| **分支名** | 要上传文件的分支。 | `main` 或 `master` |
+| **仓库内文件夹路径** | 仓库中存储图片的目录。会自动添加 `/`。 | `assets/` |
+| **上传后删除本地文件** | 如果启用，上传成功后将从您的 vault 中删除原始图片文件。 | `是` / `否` |
 
-#### Encryption Setup (Highly Recommended)
+#### 加密设置（强烈推荐）
 
-1.  Toggle on **"Enable Encryption"**.
-2.  Enter a strong, memorable password in the **"Master Password"** field. **This password is not saved anywhere.**
-3.  Paste the **GitHub PAT** you generated in Step 2 into the "GitHub Personal Access Token" field.
-4.  Click **"Save Encrypted Token"**. A notice will confirm it has been saved securely.
+1.  打开 **“启用加密”** 开关。
+2.  在 **“主密码”** 字段中输入一个强且容易记住的密码。**此密码不会保存在任何地方。**
+3.  将您在第 2 步中生成的 GitHub PAT 粘贴到 **“GitHub 个人访问令牌”** 字段。
+4.  点击 **“保存加密 Token”**。将出现通知，确认已安全保存。
 
-You are all set! The next time you paste an image, NotePix will handle the upload according to your settings.
+一切就绪！下次您粘贴图片时，NotePix 将根据您的设置处理上传。
 
+## 🙏 鸣谢
 
+-   **原作者**：[Ayush Parkara](https://github.com/AyushParkara) – 感谢您创建了原始 NotePix 插件，并以 MIT 许可证发布，使本复刻成为可能。
+-   **复刻维护者**：[1228chl](https://github.com/1228chl) – 持续维护与改进。
 
-## 🙏 Support
+## 📄 许可证
 
-This plugin is created by [Ayush Parkara](https://github.com/AyushParkara). If you find it useful and want to show your appreciation, you can support me here:
-
-<a href="https://www.paypal.com/paypalme/AyushParkara" target="_blank"><img src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" alt="Donate with PayPal"></a>
-
-## 📄 License
-
-This plugin is released under the MIT License.
+本插件基于 MIT 许可证发布。详见 [LICENSE](LICENSE) 文件。原始版权归 Ayush Parkara 所有，修改部分同样遵循该许可证。
