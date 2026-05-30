@@ -1,5 +1,6 @@
 var import_obsidian = require("obsidian");
 
+//中文注释全部都有了
 // ========== 辅助函数 ==========
 // 拼接仓库路径（移动端安全）
 function joinRepoPath(folderPath, fileName) {
