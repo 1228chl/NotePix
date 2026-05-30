@@ -4,6 +4,7 @@ DEV_NOTES_CHANGELOG.txt
 # Node modules (if any)
 node_modules/
 
+
 # Build artifacts
 *.map
 
@@ -17,3 +18,6 @@ Thumbs.db
 
 # Local planning notes (ignored)
 PROVIDER_EXPANSION_IDEAS.txt
+
+# 各版本文件打包文件
+Version/
