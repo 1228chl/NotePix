@@ -4,6 +4,17 @@
 
 格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/)，版本遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [1.5.2] - 2026-06-02
+
+### 修复
+- **重新整理图片序号命令**：修复当图片路径包含中文、括号等特殊字符时，GitHub API 请求返回 404 的问题。  
+  现在会对远程路径的每一段进行独立的 URL 编码（保留斜杠分隔），确保特殊字符被正确处理。
+- **图片链接解析器增强**：重写 `extractUrlFromFullMatch` 方法，支持从嵌套括号的 Markdown 图片语法中准确提取 URL（例如 `![](https://.../file(1).png)`）。
+
+### 改进
+- 新增 `encodeRemotePath` 辅助方法，统一对所有 GitHub API 调用（`fileExistsOnGitHub`、`downloadImageFromGitHub`、`uploadImageData`、`deleteFileFromGitHub` 及 `reorderCurrentNoteImages` 内部请求）中的路径进行逐段编码。
+- 在 `reorderCurrentNoteImages` 中直接从原始 URL 提取完整远程路径，避免依赖 `parseImageUrl` 可能出现的截断问题。
+
 ## [1.5.1] - 2026-06-02
 
 ### 修复
