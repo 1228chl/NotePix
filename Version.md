@@ -2,63 +2,98 @@
 
 所有显著更改都将记录在此文件中。
 
-格式基于[Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/)，版本遵循[语义化版本](https://semver.org/lang/zh-CN/)。
+格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/)，版本遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
-## [1.4.6] - 2026-06-02
+## [1.5.1] - 2026-06-02
 
 ### 修复
-- **重新整理图片序号命令**：修复执行后 `imageCounters` 未正确同步的问题。现在计数器会直接更新为当前图片的实际最大序号，避免下次上传时序号跳跃。
-- **删除文件功能**：修复 `deleteFileFromGitHub` 中缺少 `Accept: application/vnd.github.v3+json` 头导致的解析错误（返回图片二进制而非 JSON）。
-- **标题编号算法**：完全重写 `generateFileNameFromHeading`，基于文档标题树（`metadataCache`）生成绝对编号（如 `1.1.3`），不再依赖向上行扫描，解决编号过深、重复的问题。
-- **粘贴图片扩展名**：修复剪贴板图片（`File` 对象）扩展名为 `.undefined` 的问题，现在正确从 `file.name` 提取。
-- **缺失 `captureFilePlaceholder` 方法**：删除无效调用，避免控制台报错。
+- **重新整理图片序号命令**：修复执行后 `imageCounters` 未正确同步的问题。  
+  之前当某层级的图片数量减少时（如从 5 张整理为 2 张），计数器仍保留旧的最大值 5，导致下次上传时从 6 开始编号。  
+  现在计数器会直接更新为当前图片的实际最大序号（即该层级图片总数），确保后续上传序号连续。
+
+## [1.5.0] - 2026-06-01
 
 ### 新增
-- **公开图片链接格式切换**：支持 `GitHub Raw` 和 `jsDelivr CDN` 两种格式，可在设置中全局选择。
-- **右键单张转换链接**：在编辑器或阅读视图中，右键点击图片可快速切换 Raw ↔ CDN 格式。
-- **批量转换笔记链接**：设置面板添加“转换当前笔记链接”按钮，一键转换当前笔记中所有图片链接。
-- **重新整理图片序号**：新增命令 `NotePix: 重新整理当前笔记的图片序号`，自动检测每个标题层级下的图片序号空缺并重新编号（从 1 开始连续），同时处理重命名、重新上传、链接更新及计数器同步。
-- **标题层级最大深度设置**：可限制文件名中最多使用几级标题序号（1-6），超出部分截断。
-- **自动上传监控图片开关**：设置界面添加开关，控制是否自动上传监控文件夹内的图片。
+- **智能标题编号（基于文档大纲）**  
+  - 不再依赖向上扫描行文本，改用 `metadataCache` 获取整个文档的标题树。  
+  - 生成绝对编号（如 `1.1.3`），符合 Word 多级列表规则。  
+  - 支持设置最大标题深度（1-6 级），超出部分自动截断，避免文件名过长。
+- **jsDelivr CDN 支持**  
+  - 公开仓库图片可选择 `jsDelivr CDN` 加速（国内访问更快）。  
+  - 与 `GitHub Raw` 格式自由切换，设置中一键更改。  
+  - 右键图片可单张快速转换链接格式（Raw ↔ CDN）。  
+  - 批量转换当前笔记中所有图片链接格式（设置面板按钮）。
+- **图片序号整理（填补空缺）**  
+  - 新增命令 `NotePix: 重新整理当前笔记的图片序号`。  
+  - 自动使每个标题层级下的图片序号连续（从 1 开始）。  
+  - 安全机制：先上传新文件，成功后删除旧文件，最后更新笔记。  
+  - 同步更新计数器，确保后续上传从正确序号递增。
+- **设置界面新增控件**  
+  - “标题层级最大深度”滑块（1-6）。  
+  - “公开图片链接格式”下拉框（GitHub Raw / jsDelivr CDN）。  
+  - “转换当前笔记链接”按钮。  
+  - “自动上传监控图片”开关（原本存在但未显示）。
 
 ### 改进
-- **计数器持久化**：`getNextImageCounter` 改为 `async` 并同步保存，避免并发覆盖。
-- **文件创建监听优化**：增加 `alreadyConfirmed` 标记，防止粘贴/拖拽图片被文件事件重复处理。
-- **占位符替换简化**：`replaceLinkInEditor` 改用简单正则匹配，提升兼容性。
-- **代码结构**：添加 `parseImageUrl`, `buildImageUrl`, `extractUrlFromFullMatch`, `fileExistsOnGitHub`, `downloadImageFromGitHub`, `uploadImageData` 等辅助方法，模块化增强。
-
-## [1.4.5] - 2026-05-20
+- **上传与粘贴优化**  
+  - 修复粘贴图片时扩展名为 `.undefined` 的问题（兼容剪贴板 `File` 对象）。  
+  - 粘贴图片直接调用 `handleImageUpload`，不再经过冗余的 `uploadPastedImage`。  
+  - 文件创建监听器中移除未定义的 `captureFilePlaceholder` 调用，避免控制台报错。
+- **删除 API 增强**  
+  - `deleteFileFromGitHub` 添加 `Accept: application/vnd.github.v3+json` 头，避免返回二进制数据导致解析错误。  
+  - 增加响应类型检查，提升稳定性。
+- **代码结构优化**  
+  - 新增辅助方法：`parseImageUrl`, `buildImageUrl`, `extractUrlFromFullMatch`, `fileExistsOnGitHub`, `downloadImageFromGitHub`, `uploadImageData`。  
+  - 右键菜单增加“转换图片链接”选项（编辑器和阅读视图均支持）。  
+  - 计数器保存改为同步等待（`await saveSettings()`），避免并发覆盖。
 
 ### 修复
-- 修复 `uploadPastedImage` 中条件错误导致粘贴图片不自动上传的问题。
-- 修复 `deleteFileFromGitHub` 中缺少 `Accept` 头导致删除错误。
+- 修正标题编号算法中计数器重置逻辑错误，确保同级标题递增（如 `1.1.1` → `1.1.2` → `1.1.3`）。  
+- 修复删除图片时因缺少 `Accept` 头导致的 `Unexpected token` 错误。  
+- 修复粘贴图片时扩展名丢失导致文件名变为 `.undefined`。  
+- 移除未定义方法 `captureFilePlaceholder` 的调用，消除控制台报错。
+
+## [1.4.6] - 2026-05-30
 
 ### 新增
-- 公开图片链接格式选择框架（后端逻辑，界面待后续版本）。
-
-## [1.4.4] - 2026-05-15
+- 公开图片链接格式选择框架（后端逻辑，界面尚未完成）。
 
 ### 修复
-- 修正 `autoUpload` 逻辑，粘贴图片立即上传，不再依赖文件监控事件。
-- 修复 `generateFileNameFromHeading` 中计数器未正确使用 `await` 导致文件名出现 `[object Promise]`。
+- 修复 `uploadPastedImage` 中条件错误导致粘贴图片不自动上传的问题。  
+- 修复 `deleteFileFromGitHub` 中缺少 `Accept` 头导致删除错误。
+
+## [1.4.5] - 2026-05-25
+
+### 修复
+- 修正 `generateFileNameFromHeading` 中计数器未正确使用 `await` 导致文件名出现 `[object Promise]`。  
+- 优化 `replaceLinkInEditor` 正则匹配，提高稳定性。
+
+## [1.4.4] - 2026-05-20
 
 ### 新增
 - 设置界面补齐“自动上传监控图片”开关。
 
-## [1.4.3] - 2026-05-10
+### 修复
+- 修正 `autoUpload` 逻辑，粘贴图片立即上传，不再依赖文件监控事件。  
+- 修复粘贴图片时占位符替换失败的边缘情况。
+
+## [1.4.3] - 2026-05-15
 
 ### 初始复刻版本
-- 基于原版 NotePix 复刻，包含基础功能：
-  - 粘贴/拖拽图片上传到 GitHub 仓库。
-  - 支持公开/私有仓库智能识别。
-  - 加密存储 GitHub Token。
-  - 移动端适配。
-  - 按笔记路径存储图片（`imageStorageStrategy`）。
-  - 基于光标向上扫描的标题层级文件名生成（初版，后续版本已重写）。
+基于原版 NotePix 进行首次复刻和功能增强，包含以下基础功能：
 
-## [1.0.0] - 原始版本（Ayush Parkara）
+- 粘贴/拖拽图片上传到 GitHub 仓库（支持公开/私有智能识别）。  
+- 加密存储 GitHub Token（AES-GCM）。  
+- 移动端适配（附件文件夹集成、占位符追踪）。  
+- 按笔记路径存储图片（`imageStorageStrategy` 选项）。  
+- 基于光标向上扫描的标题层级文件名生成（初版）。  
+- 本地文件夹管理（上传临时文件夹、本地专用文件夹、额外监控文件夹）。  
+- 右键删除图片（编辑器与阅读视图）。
 
-### 原始功能
-- 自动上传图片到 GitHub 仓库。
-- 支持公开/私有模式切换。
-- 基本的链接替换。
+## [1.0.0] - 2025-XX-XX (原始版本)
+
+### 原始功能（作者：Ayush Parkara）
+- 自动上传图片到 GitHub 仓库。  
+- 支持公开/私有模式切换。  
+- 基本的链接替换。  
+- Token 加密存储。
