@@ -1375,14 +1375,15 @@ var MyPlugin = class extends import_obsidian.Plugin {
             }
         }
 
-        // 更新计数器中的最大序号
+        // 更新计数器中的最大序号（直接设置为整理后的最大序号）
         if (newMaxMap.size > 0) {
             const notePath = file.path;
             let countersUpdated = 0;
             for (const [hierarchy, maxNum] of newMaxMap.entries()) {
                 const key = `${notePath}|${hierarchy}`;
                 if (!this.settings.imageCounters) this.settings.imageCounters = {};
-                if (maxNum > (this.settings.imageCounters[key] || 0)) {
+                // 直接覆盖，不再判断大小
+                if (this.settings.imageCounters[key] !== maxNum) {
                     this.settings.imageCounters[key] = maxNum;
                     this.imageCounterMap.set(key, maxNum);
                     countersUpdated++;
