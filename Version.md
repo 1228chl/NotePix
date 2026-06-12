@@ -4,6 +4,28 @@
 
 格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/)，版本遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [1.5.3] - 2026-06-12
+
+### 新增
+- **智能重新整理图片序号（增强版）**  
+  - 执行整理前自动检测每个标题层级是否真正需要重排（比较远程文件数量与笔记图片数量、检查编号是否连续）。  
+  - 若已完美连续则直接跳过，避免不必要的 API 调用和上传。  
+- **全量清理旧文件**  
+  - 重排时将删除该层级下所有匹配前缀（如 `1.4.3-`）的旧文件，彻底解决残留文件问题。  
+  - 删除时直接使用 `listRemoteDirectoryContents` 获取的 SHA，避免 GitHub API 返回非 JSON 数据错误。  
+- **覆盖上传保障**  
+  - 上传新文件前检查是否已存在，若存在则使用 `sha` 进行覆盖更新，杜绝 422（Unprocessable Content）错误。  
+
+### 改进
+- 新增 `listRemoteDirectoryContents`、`deleteFileBySha`、`deleteRemoteFilesWithPrefix` 三个辅助方法，提升 GitHub 目录操作的安全性和效率。  
+- 重构 `reorderCurrentNoteImages` 方法，采用“下载原图 → 删除旧文件 → 按顺序上传”的安全策略，确保即使网络中断也不会丢失原始图片。  
+- 上传时自动处理文件存在性检查，合并“先删后传”为“存在则覆盖”，减少 API 调用次数。  
+
+### 修复
+- 修复当远程文件缺失中间编号（如只有 `-1` 和 `-3`）时，重新整理可能跳过的逻辑缺陷。  
+- 修复删除阶段因 GitHub API 返回 `application/vnd.github.v3.raw` 导致无法解析 SHA 的问题。  
+- 修复上传时因旧文件未完全删除而返回 422 的错误（现改为覆盖更新）。
+
 ## [1.5.2] - 2026-06-02
 
 ### 修复
